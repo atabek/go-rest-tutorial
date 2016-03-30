@@ -6,10 +6,13 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/swhite24/go-rest-tutorial/models"
+	"github.com/atabek/go-rest-tutorial/models"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
+
+// List all users
+var users = make([]models.User, 0)
 
 type (
 	// UserController represents the controller for operating on the User resource
@@ -25,6 +28,10 @@ func NewUserController(s *mgo.Session) *UserController {
 
 // GetUser retrieves an individual user resource
 func (uc UserController) GetUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	session := uc.session.Copy()
+	defer session.Close()
+
 	// Grab id
 	id := p.ByName("id")
 
@@ -55,8 +62,33 @@ func (uc UserController) GetUser(w http.ResponseWriter, r *http.Request, p httpr
 	fmt.Fprintf(w, "%s", uj)
 }
 
+// GetUser retrieves an individual user resource
+func (uc UserController) GetUsers(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	session := uc.session.Copy()
+	defer session.Close()
+
+	// Fetch users
+	if err := uc.session.DB("go_rest_tutorial").C("users").Find(nil).All(&users); err != nil {
+		w.WriteHeader(404)
+		return
+	}
+
+	// Marshal provided interface into JSON structure
+	uj, _ := json.Marshal(users)
+
+	// Write content-type, statuscode, payload
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	fmt.Fprintf(w, "%s", uj)
+}
+
 // CreateUser creates a new user resource
 func (uc UserController) CreateUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	session := uc.session.Copy()
+	defer session.Close()
+
 	// Stub an user to be populated from the body
 	u := models.User{}
 
@@ -80,6 +112,10 @@ func (uc UserController) CreateUser(w http.ResponseWriter, r *http.Request, p ht
 
 // RemoveUser removes an existing user resource
 func (uc UserController) RemoveUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	session := uc.session.Copy()
+	defer session.Close()
+
 	// Grab id
 	id := p.ByName("id")
 

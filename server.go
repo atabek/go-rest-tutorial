@@ -6,7 +6,7 @@ import (
 
 	// Third party packages
 	"github.com/julienschmidt/httprouter"
-	"github.com/swhite24/go-rest-tutorial/controllers"
+	"github.com/atabek/go-rest-tutorial/controllers"
 	"gopkg.in/mgo.v2"
 )
 
@@ -19,6 +19,9 @@ func main() {
 
 	// Get a user resource
 	r.GET("/user/:id", uc.GetUser)
+
+	// Get users
+	r.GET("/users", uc.GetUsers)
 
 	// Create a new user
 	r.POST("/user", uc.CreateUser)
